@@ -1,0 +1,28 @@
+# Python
+.venv
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Jupyter
+.ipynb_checkpoints
+notebook/
+
+# OS
+.DS_Store
+
+# Env / secrets
+.env
+
+# Git
+.git
+.gitignore
+
+# Data not to include in Docker image
+data/private/
+data/original/
+data/raw/
+
+# Misc
+*.log

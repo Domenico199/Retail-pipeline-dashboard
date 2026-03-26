@@ -1,0 +1,53 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Environment variables
+.env
+.env.*
+
+# Jupyter notebooks checkpoints
+.ipynb_checkpoints/
+notebooks/
+
+# MacOS
+.DS_Store
+
+# Logs
+*.log
+
+# Data folders (exclude generated and raw data)
+data/source/
+data/processed/
+data/PriceList.csv
+
+# Optional: keep sample data only
+# data/sample/
+
+# Temporary files
+*.tmp
+*.swp
+
+# IDE
+.vscode/
+.idea/
+
+# Docker
+*.pid
+
+# Pytest
+.pytest_cache/
+
+# Coverage
+.coverage
+htmlcov/
+
+# Misc
+*.sqlite
