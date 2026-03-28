@@ -19,6 +19,12 @@ def main(simulation_date):
     inventory = pd.read_sql("SELECT * FROM core.inventory", engine)
     suppliers = pd.read_sql("SELECT * FROM core.product_suppliers", engine)
 
+    products_prices = pd.read_sql(
+        "SELECT product_id, sale_price, purchase_price FROM core.products", engine
+    ).set_index("product_id")
+
+    PROMO_TYPES = ["sconto_percentuale", "offerta_3x2", "prezzo_speciale"]
+
     movements = []
 
     for _, row in specs.iterrows():
@@ -36,12 +42,17 @@ def main(simulation_date):
 
                 for _ in range(n_events):
                     qty = np.random.randint(1, 4)
+                    is_promo = np.random.rand() < 0.15
                     movements.append({
                         "store_id": 1,
                         "product_id": product_id,
                         "supplier_id": None,
                         "movement_type": "sale",
                         "quantity": qty,
+                        "unit_sale_price": float(products_prices.loc[product_id, "sale_price"]),
+                        "unit_purchase_price": None,
+                        "is_promo": is_promo,
+                        "promo_type": np.random.choice(PROMO_TYPES) if is_promo else None,
                         "movement_timestamp": random_time(8, 20, date),
                         "movement_date": date
                     })
@@ -54,6 +65,10 @@ def main(simulation_date):
                 "supplier_id": None,
                 "movement_type": "breakage",
                 "quantity": np.random.randint(1, 3),
+                "unit_sale_price": None,
+                "unit_purchase_price": None,
+                "is_promo": False,
+                "promo_type": None,
                 "movement_timestamp": random_time(6, 21, date),
                 "movement_date": date
             })
@@ -81,6 +96,10 @@ def main(simulation_date):
                     "supplier_id": supplier_id,
                     "movement_type": "purchase",
                     "quantity": max(1, qty),
+                    "unit_sale_price": None,
+                    "unit_purchase_price": float(products_prices.loc[product_id, "purchase_price"]),
+                    "is_promo": False,
+                    "promo_type": None,
                     "movement_timestamp": random_time(6, 17, date),
                     "movement_date": date
                 })

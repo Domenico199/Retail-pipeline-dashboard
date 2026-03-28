@@ -51,3 +51,9 @@ htmlcov/
 
 # Misc
 *.sqlite
+
+# Claude Code worktrees
+.claude/worktrees/
+
+# Setuptools egg-info
+*.egg-info/
