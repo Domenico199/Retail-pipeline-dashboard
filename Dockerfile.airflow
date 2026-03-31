@@ -1,0 +1,10 @@
+FROM apache/airflow:2.10.4-python3.12
+
+# Install project dependencies
+COPY requirements.txt /opt/airflow/requirements.txt
+RUN pip install --no-cache-dir -r /opt/airflow/requirements.txt
+
+# Copy project source code
+COPY src/ /opt/airflow/src/
+COPY pipeline/ /opt/airflow/pipeline/
+COPY scripts/ /opt/airflow/scripts/
