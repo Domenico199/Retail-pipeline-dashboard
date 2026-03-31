@@ -90,6 +90,9 @@ def main(simulation_date):
                     qty = int(row["reorder_lot"] * np.random.uniform(0.5, 1.0))
 
             if supplier_id:
+                # se stock negativo, ordina almeno abbastanza per coprire il deficit
+                if stock < 0:
+                    qty = max(qty, abs(stock) + 1)
                 movements.append({
                     "store_id": 1,
                     "product_id": product_id,

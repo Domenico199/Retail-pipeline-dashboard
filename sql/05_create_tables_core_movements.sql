@@ -9,6 +9,11 @@ CREATE TABLE IF NOT EXISTS core.movements (
     product_id            VARCHAR(50) NOT NULL,
     supplier_id           VARCHAR(20),
 
+    shelf_id              INTEGER,
+    shelf_level           INTEGER,
+    zone                  VARCHAR(10),
+    slot_number           INTEGER,
+
     movement_type         VARCHAR(20) NOT NULL CHECK (
         movement_type IN ('sale', 'purchase', 'breakage')
     ),
@@ -80,3 +85,6 @@ CREATE INDEX IF NOT EXISTS idx_core_movements_store
 
 CREATE INDEX IF NOT EXISTS idx_core_movements_file
     ON core.movements(source_file_name);
+
+CREATE INDEX IF NOT EXISTS idx_core_movements_shelf
+    ON core.movements(store_id, shelf_id, shelf_level, zone, slot_number);
