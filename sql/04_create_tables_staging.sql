@@ -22,35 +22,10 @@ CREATE TABLE IF NOT EXISTS staging.raw_movements (
     movement_timestamp    TIMESTAMP NOT NULL,
     movement_date         DATE NOT NULL,
 
-    ingestion_timestamp   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    ingestion_timestamp   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 
-    CONSTRAINT fk_raw_movements_product
-        FOREIGN KEY (product_id)
-        REFERENCES core.products(product_id)
-        ON DELETE CASCADE,
-
-    CONSTRAINT fk_raw_movements_supplier
-        FOREIGN KEY (supplier_id)
-        REFERENCES core.suppliers(supplier_id)
-        ON DELETE SET NULL,
-
-    CONSTRAINT chk_raw_movements_sale_price
-        CHECK (
-            (movement_type <> 'sale')
-            OR (unit_sale_price IS NOT NULL AND unit_sale_price > 0)
-        ),
-
-    CONSTRAINT chk_raw_movements_purchase_price
-        CHECK (
-            (movement_type <> 'purchase')
-            OR (unit_purchase_price IS NOT NULL AND unit_purchase_price > 0)
-        ),
-
-    CONSTRAINT chk_raw_movements_breakage_prices
-        CHECK (
-            (movement_type <> 'breakage')
-            OR (unit_sale_price IS NULL AND unit_purchase_price IS NULL)
-        )
+    -- No FK or CHECK constraints: raw layer accepts all data as-is.
+    -- Validation is handled in the transform step (pipeline/transform/).
 );
 
 CREATE INDEX IF NOT EXISTS idx_raw_movements_date

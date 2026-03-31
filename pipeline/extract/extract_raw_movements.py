@@ -1,8 +1,9 @@
 import os
-import pandas as pd 
+import pandas as pd
 from dotenv import load_dotenv
-from sqlalchemy import text 
+from sqlalchemy import text
 from src.db import get_db_engine
+from pipeline.run_tracker import RunTracker
 
 
 # LOAD ENV
@@ -78,11 +79,15 @@ def main():
     print(f"Found {len(new_files)} new file(s) to process.")
 
     for file_name in new_files:
+        tracker = RunTracker(engine, "extract")
+        tracker.start(source_file_name=file_name)
         try:
             n_rows = load_file_to_staging(file_name, engine)
             mark_file_as_processed(file_name, engine)
+            tracker.complete(rows_processed=n_rows, rows_success=n_rows, rows_failed=0)
             print(f"  ✓ {file_name}: {n_rows} rows loaded")
         except Exception as e:
+            tracker.fail(str(e))
             print(f"  ✗ {file_name}: failed — {e}")
 
     print("Done.")

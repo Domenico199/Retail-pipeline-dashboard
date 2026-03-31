@@ -1,6 +1,7 @@
 import pandas as pd
 from dotenv import load_dotenv
 from src.db import get_db_engine
+from pipeline.run_tracker import RunTracker
 
 
 load_dotenv()
@@ -35,23 +36,56 @@ def load_raw_for_file(file_name: str, engine) -> pd.DataFrame:
 
 
 # VALIDATE: SPLIT INTO CLEAN AND BAD
-def validate(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
+def validate(df: pd.DataFrame, valid_products: set, valid_suppliers: set) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
-    Apply business validation rules on top of what the DB constraints already enforce.
+    Apply all validation rules — structural and business logic.
     Returns (df_clean, df_bad).
 
-    Rows already in raw_movements passed structural DB constraints (FK, price CHECKs).
-    This step catches remaining business logic errors.
+    Since raw_movements no longer has FK/CHECK constraints,
+    ALL validation happens here.
     """
     bad_mask = pd.Series(False, index=df.index)
     error_reason = pd.Series("", index=df.index)
     error_details = pd.Series("", index=df.index)
 
-    # Rule: purchase without supplier
+    def apply_rule(mask, reason, details):
+        """Apply a validation rule: only mark rows not already flagged."""
+        nonlocal bad_mask, error_reason, error_details
+        new_bad = mask & ~bad_mask  # only flag rows not already bad
+        bad_mask |= mask
+        error_reason[new_bad] = reason
+        error_details[new_bad] = details
+
+    # 1. Unknown product
+    unknown_product = ~df["product_id"].isin(valid_products)
+    apply_rule(unknown_product, "unknown_product", "product_id not found in core.products")
+
+    # 2. Unknown supplier (only when supplier_id is not null)
+    has_supplier = df["supplier_id"].notna()
+    unknown_supplier = has_supplier & ~df["supplier_id"].isin(valid_suppliers)
+    apply_rule(unknown_supplier, "unknown_supplier", "supplier_id not found in core.suppliers")
+
+    # 3. Sale without price
+    sale_no_price = (df["movement_type"] == "sale") & (
+        df["unit_sale_price"].isna() | (df["unit_sale_price"] <= 0)
+    )
+    apply_rule(sale_no_price, "missing_sale_price", "movement_type='sale' but unit_sale_price is missing or <= 0")
+
+    # 4. Purchase without price
+    purchase_no_price = (df["movement_type"] == "purchase") & (
+        df["unit_purchase_price"].isna() | (df["unit_purchase_price"] <= 0)
+    )
+    apply_rule(purchase_no_price, "missing_purchase_price", "movement_type='purchase' but unit_purchase_price is missing or <= 0")
+
+    # 5. Breakage with price (should be NULL)
+    breakage_with_price = (df["movement_type"] == "breakage") & (
+        df["unit_sale_price"].notna() | df["unit_purchase_price"].notna()
+    )
+    apply_rule(breakage_with_price, "breakage_with_price", "movement_type='breakage' but prices are not NULL")
+
+    # 6. Purchase without supplier
     purchase_no_supplier = (df["movement_type"] == "purchase") & df["supplier_id"].isna()
-    bad_mask |= purchase_no_supplier
-    error_reason[purchase_no_supplier] = "purchase_without_supplier"
-    error_details[purchase_no_supplier] = "movement_type='purchase' but supplier_id is NULL"
+    apply_rule(purchase_no_supplier, "purchase_without_supplier", "movement_type='purchase' but supplier_id is NULL")
 
     df_bad = df[bad_mask].copy()
     df_bad["error_reason"] = error_reason[bad_mask].values
@@ -113,23 +147,35 @@ def main():
         print("No files to transform.")
         return
 
+    # Load valid reference sets once (used for all files)
+    valid_products = set(pd.read_sql("SELECT product_id FROM core.products", engine)["product_id"])
+    valid_suppliers = set(pd.read_sql("SELECT supplier_id FROM core.suppliers", engine)["supplier_id"])
+
     print(f"Found {len(files)} file(s) to transform.")
 
     for file_name in files:
+        tracker = RunTracker(engine, "transform")
+        tracker.start(source_file_name=file_name)
         try:
             df = load_raw_for_file(file_name, engine)
-            df_clean, df_bad = validate(df)
+            df_clean, df_bad = validate(df, valid_products, valid_suppliers)
 
             if not df_clean.empty:
                 load_cleaned(df_clean, engine)
             if not df_bad.empty:
                 load_bad(df_bad, engine)
 
+            tracker.complete(
+                rows_processed=len(df),
+                rows_success=len(df_clean),
+                rows_failed=len(df_bad),
+            )
             print(
                 f"  ✓ {file_name}: "
                 f"{len(df_clean)} cleaned | {len(df_bad)} bad"
             )
         except Exception as e:
+            tracker.fail(str(e))
             print(f"  ✗ {file_name}: failed — {e}")
 
     print("Done.")

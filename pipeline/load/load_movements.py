@@ -2,6 +2,7 @@ import pandas as pd
 from sqlalchemy import text
 from dotenv import load_dotenv
 from src.db import get_db_engine
+from pipeline.run_tracker import RunTracker
 
 
 load_dotenv()
@@ -105,21 +106,31 @@ def main():
         print("Nothing to load.")
         return
 
-    print(f"Found {len(df)} movements to load.")
+    n_rows = len(df)
+    print(f"Found {n_rows} movements to load.")
 
-    cleaned_ids = df["cleaned_movement_id"].tolist()
+    tracker = RunTracker(engine, "load")
+    tracker.start()
 
-    df = enrich_with_shelf_position(df, engine)
+    try:
+        cleaned_ids = df["cleaned_movement_id"].tolist()
 
-    with engine.begin() as conn:
-        insert_to_core_movements(df, conn)
-        update_inventory(df, conn)
-        mark_as_loaded(cleaned_ids, conn)
+        df = enrich_with_shelf_position(df, engine)
 
-    print(f"  ✓ {len(df)} movements loaded into core.movements")
-    print(f"  ✓ inventory updated")
-    print(f"  ✓ {len(cleaned_ids)} cleaned movements marked as loaded")
-    print("Done.")
+        with engine.begin() as conn:
+            insert_to_core_movements(df, conn)
+            update_inventory(df, conn)
+            mark_as_loaded(cleaned_ids, conn)
+
+        tracker.complete(rows_processed=n_rows, rows_success=n_rows, rows_failed=0)
+        print(f"  ✓ {n_rows} movements loaded into core.movements")
+        print(f"  ✓ inventory updated")
+        print(f"  ✓ {len(cleaned_ids)} cleaned movements marked as loaded")
+        print("Done.")
+    except Exception as e:
+        tracker.fail(str(e))
+        print(f"  ✗ Load failed — {e}")
+        raise
 
 
 if __name__ == "__main__":
