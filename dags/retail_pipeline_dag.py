@@ -1,12 +1,5 @@
 """
 Retail ETL Pipeline DAG
-
-Orchestrates the daily execution of the retail data pipeline:
-    extract → transform → load
-
-Schedule: daily at midnight
-Each task runs as a BashOperator, executing the pipeline scripts
-from the /opt/airflow working directory.
 """
 
 from datetime import datetime, timedelta
@@ -27,7 +20,7 @@ default_args = {
 with DAG(
     dag_id="retail_pipeline",
     default_args=default_args,
-    description="Daily ETL pipeline: extract → transform → load retail movements",
+    description="Daily ETL pipeline: extract - transform - load retail movements",
     schedule="@daily",
     start_date=datetime(2026, 1, 1),
     catchup=False,
