@@ -103,6 +103,61 @@ services:
       - ./data:/opt/airflow/data
     command: airflow scheduler
 
+  # ── Superset Metadata PostgreSQL ──────────────────────────
+  superset-metadata:
+    image: postgres:16
+    container_name: superset_metadata
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: superset
+      POSTGRES_USER: superset
+      POSTGRES_PASSWORD: superset
+    volumes:
+      - superset_metadata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U superset -d superset"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Superset Init (one-shot) ──────────────────────────────
+  superset-init:
+    build:
+      context: ./superset
+      dockerfile: Dockerfile
+    container_name: superset_init
+    depends_on:
+      superset-metadata:
+        condition: service_healthy
+    environment: &superset-env
+      SUPERSET_SECRET_KEY: "retail-superset-secret-key-change-me"
+      SQLALCHEMY_DATABASE_URI: "postgresql+psycopg2://superset:superset@superset-metadata:5432/superset"
+    volumes:
+      - superset_home:/app/superset_home
+      - ./superset/bootstrap.sh:/app/bootstrap.sh
+    entrypoint: /bin/bash
+    command: /app/bootstrap.sh
+
+  # ── Apache Superset ──────────────────────────────────────
+  superset:
+    build:
+      context: ./superset
+      dockerfile: Dockerfile
+    container_name: superset
+    restart: unless-stopped
+    depends_on:
+      superset-init:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+    environment: *superset-env
+    ports:
+      - "8088:8088"
+    volumes:
+      - superset_home:/app/superset_home
+
 volumes:
   postgres_data:
   airflow_metadata:
+  superset_metadata:
+  superset_home:

@@ -10,6 +10,9 @@ SELECT
     m.store_id,
     m.shelf_id,
     m.movement_date,
+    TO_CHAR(m.movement_date, 'YYYY-MM')              AS month,
+    EXTRACT(YEAR FROM m.movement_date)::INTEGER       AS year,
+    EXTRACT(WEEK FROM m.movement_date)::INTEGER       AS week,
     COUNT(*)            AS transaction_count,
     SUM(m.quantity)     AS qty_sold,
     SUM(m.quantity * m.unit_sale_price) AS revenue
@@ -25,6 +28,9 @@ SELECT
     m.store_id,
     sa.shelf_id,
     m.movement_date,
+    TO_CHAR(m.movement_date, 'YYYY-MM')              AS month,
+    EXTRACT(YEAR FROM m.movement_date)::INTEGER       AS year,
+    EXTRACT(WEEK FROM m.movement_date)::INTEGER       AS week,
     COUNT(*)            AS transaction_count,
     SUM(m.quantity)     AS qty_sold,
     SUM(m.quantity * m.unit_sale_price) AS revenue
@@ -43,6 +49,9 @@ SELECT
     m.store_id,
     m.shelf_id,
     m.movement_date,
+    TO_CHAR(m.movement_date, 'YYYY-MM')              AS month,
+    EXTRACT(YEAR FROM m.movement_date)::INTEGER       AS year,
+    EXTRACT(WEEK FROM m.movement_date)::INTEGER       AS week,
     COUNT(*)            AS breakage_events,
     SUM(m.quantity)     AS qty_lost,
     SUM(m.quantity * p.purchase_price) AS breakage_cost
@@ -59,6 +68,9 @@ SELECT
     m.store_id,
     sa.shelf_id,
     m.movement_date,
+    TO_CHAR(m.movement_date, 'YYYY-MM')              AS month,
+    EXTRACT(YEAR FROM m.movement_date)::INTEGER       AS year,
+    EXTRACT(WEEK FROM m.movement_date)::INTEGER       AS week,
     COUNT(*)            AS breakage_events,
     SUM(m.quantity)     AS qty_lost,
     SUM(m.quantity * p.purchase_price) AS breakage_cost
@@ -82,6 +94,9 @@ SELECT
     p.category_level_2,
     m.shelf_id,
     m.movement_date,
+    TO_CHAR(m.movement_date, 'YYYY-MM')              AS month,
+    EXTRACT(YEAR FROM m.movement_date)::INTEGER       AS year,
+    EXTRACT(WEEK FROM m.movement_date)::INTEGER       AS week,
     SUM(m.quantity)                          AS qty_sold,
     SUM(m.quantity * m.unit_sale_price)      AS revenue,
     SUM(m.quantity * p.purchase_price)       AS cost,
@@ -107,16 +122,22 @@ CREATE OR REPLACE VIEW analytics.daily_kpis AS
 SELECT
     m.store_id,
     m.movement_date,
+    TO_CHAR(m.movement_date, 'YYYY-MM')              AS month,
+    EXTRACT(YEAR FROM m.movement_date)::INTEGER       AS year,
+    EXTRACT(WEEK FROM m.movement_date)::INTEGER       AS week,
     COUNT(*)    FILTER (WHERE m.movement_type = 'sale')      AS sale_transactions,
     COALESCE(SUM(m.quantity) FILTER (WHERE m.movement_type = 'sale'), 0)      AS qty_sold,
     COALESCE(SUM(m.quantity * m.unit_sale_price) FILTER (WHERE m.movement_type = 'sale'), 0) AS revenue,
+    COALESCE(SUM(m.quantity * p.purchase_price) FILTER (WHERE m.movement_type = 'sale'), 0) AS cogs,
     COUNT(*)    FILTER (WHERE m.movement_type = 'breakage')  AS breakage_events,
     COALESCE(SUM(m.quantity) FILTER (WHERE m.movement_type = 'breakage'), 0)  AS qty_breakage,
+    COALESCE(SUM(m.quantity * p.purchase_price) FILTER (WHERE m.movement_type = 'breakage'), 0) AS breakage_cost,
     COUNT(*)    FILTER (WHERE m.movement_type = 'purchase')  AS purchase_transactions,
     COALESCE(SUM(m.quantity) FILTER (WHERE m.movement_type = 'purchase'), 0)  AS qty_purchased,
     COALESCE(SUM(m.quantity * m.unit_purchase_price) FILTER (WHERE m.movement_type = 'purchase'), 0) AS purchase_cost,
     COUNT(*)                                                 AS total_movements
 FROM core.movements m
+JOIN core.products p ON p.product_id = m.product_id
 GROUP BY m.store_id, m.movement_date;
 
 
