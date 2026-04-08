@@ -197,3 +197,33 @@ LEFT JOIN core.store_assortment sa
    AND sa.slot_number = sl.slot_number
 LEFT JOIN core.products p
     ON p.product_id = sa.product_id;
+
+
+-- 9. Movimenti per posizione attuale (non aggregata, per dashboard scaffale)
+CREATE OR REPLACE VIEW analytics.shelf_movements_current AS
+SELECT
+    sa.store_id,
+    sa.shelf_id,
+    sa.shelf_level,
+    sa.zone,
+    sa.slot_number,
+    m.product_id,
+    p.product_description,
+    p.category_level_1,
+    p.category_level_2,
+    m.movement_type,
+    m.quantity,
+    m.unit_sale_price,
+    m.unit_purchase_price,
+    p.purchase_price AS unit_cost,
+    m.is_promo,
+    m.movement_date,
+    TO_CHAR(m.movement_date, 'YYYY-MM')          AS month,
+    EXTRACT(YEAR FROM m.movement_date)::INTEGER   AS year,
+    EXTRACT(WEEK FROM m.movement_date)::INTEGER   AS week
+FROM core.movements m
+JOIN core.store_assortment sa
+    ON sa.store_id = m.store_id
+   AND sa.product_id = m.product_id
+   AND sa.active_flag = TRUE
+JOIN core.products p ON p.product_id = m.product_id;
