@@ -67,7 +67,20 @@ Tutte le view con `movement_date` includono colonne pre-calcolate `month`, `year
 
 ## Dashboard (Apache Superset)
 
-Dashboard interattiva con 3 tab:
+Il progetto include 2 dashboard distinte.
+
+### Dashboard 1 — Retail Overview
+
+Panoramica operativa del punto vendita. Filtri per mese, settimana e giorno (collegati tra loro).
+
+- KPI principali: revenue, quantità venduta, rotture, margine
+- Andamento temporale di vendite e costi
+- Confronto tra quantità acquistate e vendute
+- Rapporto ricavato / costo nel tempo
+
+### Dashboard 2 — Shelf Analytics
+
+Analisi dello scaffale selezionato, suddivisa in 3 tab:
 
 - **Products** — fotografia scaffale: 15 mini-tabelle (5 livelli × 3 zone) con prodotti, venduto, giacenza e rotture per ogni posizione
 - **Insights** — KPI per mensola: quantità, fatturato e margine aggregati per livello e zona
