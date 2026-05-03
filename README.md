@@ -83,6 +83,42 @@ Filtri nativi cross-dataset: `shelf_id`, `month`, `year`, `week`.
 
 ---
 
+## Risultati
+
+> ⚠️ **I dati mostrati sono completamente sintetici e simulati.** Non si riferiscono a nessun punto vendita reale. Le dashboard sono esempi dimostrativi — metriche, filtri e visualizzazioni sono completamente personalizzabili in base alle esigenze.
+
+### Dashboard 1 — Retail Overview
+
+![Dashboard Retail](dashboards/Dashboard_retail.png)
+
+Panoramica operativa del punto vendita con filtri per mese, settimana e giorno (collegati tra loro). Mostra i KPI principali (revenue, quantità venduta, rotture, margine) e l'andamento temporale delle vendite e dei costi. Permette di confrontare quantità acquistate e vendute e di monitorare il rapporto tra ricavato e costo nel tempo.
+
+---
+
+### Dashboard 2 — Shelf Analytics
+
+Seconda dashboard dedicata all'analisi per scaffale, suddivisa in 3 tab. I filtri permettono di selezionare scaffale, mese e data.
+
+#### Tab 1 — Shelf Mix
+
+![Shelf Mix](dashboards/Shelf_mix_tab.png)
+
+Composizione dello scaffale selezionato: KPI sintetici (brand distinti, categorie, fatturato, margine), share of shelf e share of sales per marca e per categoria. Permette di confrontare quanto spazio occupa una marca/categoria rispetto a quanto contribuisce alle vendite.
+
+#### Tab 2 — Insights
+
+![Shelf KPIs](dashboards/Shelf_kpis.png)
+
+KPI per ogni mensola dello scaffale (M1–M5): fatturato, quantità venduta, prezzo medio e margine. Consente di identificare le mensole più performanti e quelle con margini più bassi, senza dover analizzare i dati prodotto per prodotto.
+
+#### Tab 3 — Products
+
+![Shelf Products](dashboards/Shelf_products.png)
+
+Fotografia dettagliata dello scaffale: per ogni combinazione di mensola e zona (left, center, right) viene mostrata una tabella con i prodotti presenti e la quantità venduta nel periodo selezionato. Permette di passare da un'analisi aggregata al dettaglio del singolo prodotto senza cambiare dashboard.
+
+---
+
 ## Orchestrazione
 
 **Apache Airflow** orchestra la pipeline con un DAG giornaliero:
@@ -300,21 +336,6 @@ Le view `*_current` attribuiscono i movimenti alla posizione **attuale** del pro
 - Deploy cloud (AWS/Azure)
 - Data quality checks avanzati (Great Expectations)
 
----
-
-## Stato del Progetto
-
-- [x] Data model (staging / core / sim)
-- [x] Simulatore dati giornalieri
-- [x] Pipeline ETL (extract / transform / load)
-- [x] Pipeline observability (RunTracker + pipeline_runs)
-- [x] Schema migrations (Alembic — 11 migration)
-- [x] Backfill storico (90 giorni di dati)
-- [x] Orchestrazione (Airflow + Docker Compose)
-- [x] Analytics layer (9 view SQL)
-- [x] Dashboard BI (Apache Superset — 3 tab)
-
----
 
 ## Autore
 
