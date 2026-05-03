@@ -8,17 +8,9 @@ Progetto portfolio end-to-end: simulazione dati operativi di un punto vendita, p
 
 Il progetto segue un'architettura a 4 layer con schemi PostgreSQL dedicati.
 
-> Il diagramma architetturale completo è disponibile in [`assets/architecture.drawio`](assets/architecture.drawio) — aprilo su [diagrams.net](https://app.diagrams.net) per visualizzarlo e modificarlo.
+![Architecture](assets/architecture.png)
 
-```
-CSV (simulated API)
-        |
-        v
-  +-----------+       +-----------+       +-------------+       +-------------+
-  |  staging  |  -->  |   core    |  -->  |  analytics  |  -->  |   Superset  |
-  |  (raw)    |       | (cleaned) |       |   (views)   |       |  Dashboard  |
-  +-----------+       +-----------+       +-------------+       +-------------+
-```
+> Il file sorgente modificabile è disponibile in [`assets/architecture.drawio`](assets/architecture.drawio) — aprilo su [diagrams.net](https://app.diagrams.net).
 
 - **`staging`** — dati grezzi dal CSV, nessun vincolo FK/CHECK (validazione delegata al transform)
 - **`core`** — dati puliti, normalizzati, con vincoli di integrità referenziale
