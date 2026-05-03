@@ -6,7 +6,9 @@ Progetto portfolio end-to-end: simulazione dati operativi di un punto vendita, p
 
 ## Architettura
 
-Il progetto segue un'architettura a 4 layer con schemi PostgreSQL dedicati:
+Il progetto segue un'architettura a 4 layer con schemi PostgreSQL dedicati.
+
+> Il diagramma architetturale completo è disponibile in [`assets/architecture.drawio`](assets/architecture.drawio) — aprilo su [diagrams.net](https://app.diagrams.net) per visualizzarlo e modificarlo.
 
 ```
 CSV (simulated API)
