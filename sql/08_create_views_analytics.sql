@@ -211,6 +211,7 @@ SELECT
     p.product_description,
     p.category_level_1,
     p.category_level_2,
+    p.brand_code,
     m.movement_type,
     m.quantity,
     m.unit_sale_price,
