@@ -114,7 +114,7 @@ Composizione dello scaffale selezionato: KPI sintetici (brand distinti, categori
 
 #### Tab 2 — Insights
 
-![Shelf KPIs](dashboards/Shelf_kpis.png)
+![Shelf KPIs](dashboards/Shelf_kpis_tab.png)
 
 KPI per ogni mensola dello scaffale (M1–M5): fatturato, quantità venduta, prezzo medio e margine. Consente di identificare le mensole più performanti e quelle con margini più bassi, senza dover analizzare i dati prodotto per prodotto.
 
